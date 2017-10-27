@@ -2,8 +2,6 @@ import PropTypes from 'prop-types';
 import React from "react";
 import Input from "react-toolbox/lib/input";
 import Button from "react-toolbox/lib/button";
-import { Notifs } from 'redux-notifications';
-import { Toast } from '../../components/UI/index';
 import { Card, Icon } from "../../components/UI";
 import logo from "./netlify_logo.svg";
 
@@ -95,7 +93,6 @@ export default class AuthenticationPage extends React.Component {
 
     if (window.netlifyIdentity) {
       return <section className="nc-gitGatewayAuthenticationPage-root">
-        <Notifs CustomComponent={Toast} />
         <Button className="nc-gitGatewayAuthenticationPage-button" raised onClick={this.handleIdentity}>
           Login with Netlify Identity
         </Button>

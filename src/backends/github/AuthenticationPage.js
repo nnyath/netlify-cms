@@ -3,8 +3,6 @@ import React from 'react';
 import Button from 'react-toolbox/lib/button';
 import Authenticator from '../../lib/netlify-auth';
 import { Icon } from '../../components/UI';
-import { Notifs } from 'redux-notifications';
-import { Toast } from '../../components/UI/index';
 
 export default class AuthenticationPage extends React.Component {
   static propTypes = {
@@ -37,7 +35,6 @@ export default class AuthenticationPage extends React.Component {
 
     return (
       <section className="nc-githubAuthenticationPage-root">
-        <Notifs CustomComponent={Toast} />
         {loginError && <p>{loginError}</p>}
         <Button
           className="nc-githubAuthenticationPage-button"
