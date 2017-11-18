@@ -12,12 +12,11 @@ const collections = (state = null, action) => {
     case CONFIG_SUCCESS:
       return OrderedMap().withMutations((map) => {
         (configCollections || []).forEach((configCollection) => {
+          validateCollection(configCollection);
           if (has(configCollection, 'folder')) {
             configCollection.type = FOLDER; // eslint-disable-line no-param-reassign
           } else if (has(configCollection, 'files')) {
             configCollection.type = FILES; // eslint-disable-line no-param-reassign
-          } else {
-            throw new Error('Unknown collection type. Collections can be either Folder based or File based. Please verify your site configuration');
           }
           map.set(configCollection.name, fromJS(configCollection));
         });
@@ -26,6 +25,12 @@ const collections = (state = null, action) => {
       return state;
   }
 };
+
+function validateCollection(configCollection) {
+  if (!has(configCollection, 'folder') && !has(configCollection, 'files')) {
+    throw new Error('Unknown collection type. Collections can be either Folder based or File based. Please verify your site configuration');
+  }
+}
 
 const selectors = {
   [FOLDER]: {
