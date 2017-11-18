@@ -1,10 +1,10 @@
 import { OrderedMap, fromJS } from 'immutable';
-import { has } from 'lodash';
+import { has, get } from 'lodash';
 import consoleError from '../lib/consoleError';
 import { CONFIG_SUCCESS } from '../actions/config';
 import { FILES, FOLDER } from '../constants/collectionTypes';
 import { INFERABLE_FIELDS } from '../constants/fieldInference';
-import { formatToExtension } from '../formats/formats';
+import { formatToExtension, formatByName, formatByExtension, supportedFormats } from '../formats/formats';
 
 const collections = (state = null, action) => {
   const configCollections = action.payload && action.payload.collections;
@@ -29,6 +29,13 @@ const collections = (state = null, action) => {
 function validateCollection(configCollection) {
   if (!has(configCollection, 'folder') && !has(configCollection, 'files')) {
     throw new Error('Unknown collection type. Collections can be either Folder based or File based. Please verify your site configuration');
+  }
+  if (has(configCollection, 'format')) {
+    if (!formatByName(get(configCollection, 'format'))) {
+      throw new Error('Unknown collection format. Please verify your site configuration. Supported formats are ' + supportedFormats.join(','))
+    }
+  } else if (has(configCollection, 'extension') && !formatByExtension(get(configCollection, 'extension'))) {
+    throw new Error('Cannot infer format from extension. Please set a format in your collection configuration. Supported formats are ' + supportedFormats.join(','));
   }
 }
 
