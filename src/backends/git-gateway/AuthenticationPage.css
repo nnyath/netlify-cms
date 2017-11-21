@@ -1,12 +1,16 @@
+:root {
+  --authenticationCardWidth: 350px;
+}
+
 .nc-gitGatewayAuthenticationPage-root {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  height: 100%;
 }
 
 .nc-gitGatewayAuthenticationPage-card {
-  width: 350px;
+  width: var(--authenticationCardWidth);
   padding: 10px;
 }
 

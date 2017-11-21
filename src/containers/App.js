@@ -21,6 +21,7 @@ import { openMediaLibrary as actionOpenMediaLibrary } from '../actions/mediaLibr
 import AppHeader from '../components/AppHeader/AppHeader';
 import MediaLibrary from '../components/MediaLibrary/MediaLibrary';
 import { Loader, Toast } from '../components/UI/index';
+import Dialog from '../components/UI/Dialog';
 import { getCollectionUrl, getNewEntryUrl } from '../lib/urlHelper';
 import { SIMPLE, EDITORIAL_WORKFLOW } from '../constants/publishModes';
 import DashboardPage from './DashboardPage';
@@ -51,6 +52,7 @@ class App extends React.Component {
     toggleSidebar: PropTypes.func.isRequired,
     navigateToCollection: PropTypes.func.isRequired,
     user: ImmutablePropTypes.map,
+    authPopup: PropTypes.bool.isRequired,
     runCommand: PropTypes.func.isRequired,
     isFetching: PropTypes.bool.isRequired,
     publishMode: PropTypes.oneOf([SIMPLE, EDITORIAL_WORKFLOW]),
@@ -84,19 +86,13 @@ class App extends React.Component {
       return <div><h1>Waiting for backend...</h1></div>;
     }
 
-    return (
-      <div>
-        {
-          React.createElement(backend.authComponent(), {
-            onLogin: this.handleLogin.bind(this),
-            error: auth && auth.get('error'),
-            inProgress: (auth && auth.get('isFetching')) || false,
-            siteId: this.props.config.getIn(["backend", "site_domain"]),
-            base_url: this.props.config.getIn(["backend", "base_url"], null)
-          })
-        }
-      </div>
-    );
+    return React.createElement(backend.authComponent(), {
+      onLogin: this.handleLogin.bind(this),
+      error: auth && auth.get('error'),
+      inProgress: (auth && auth.get('isFetching')) || false,
+      siteId: this.props.config.getIn(["backend", "site_domain"]),
+      base_url: this.props.config.getIn(["backend", "base_url"], null)
+    });
   }
 
   handleLinkClick(event, handler, ...args) {
@@ -117,6 +113,7 @@ class App extends React.Component {
       isFetching,
       publishMode,
       openMediaLibrary,
+      authPopup,
     } = this.props;
 
 
@@ -132,8 +129,12 @@ class App extends React.Component {
       return <Loader active>Loading configuration...</Loader>;
     }
 
-    if (user == null) {
-      return this.authenticating();
+    if (user == null && !authPopup) {
+      return (
+        <div className="nc-auth-page">
+          {this.authenticating()}
+        </div>
+      );
     }
 
     const sidebarContent = (
@@ -186,6 +187,9 @@ class App extends React.Component {
       <Sidebar content={sidebarContent}>
         <div>
           <Notifs CustomComponent={Toast} />
+          <Dialog isVisible={authPopup} className="nc-auth-dialog">
+            {this.authenticating()}
+          </Dialog>
           <AppHeader
             user={user}
             collections={collections}
@@ -218,9 +222,10 @@ class App extends React.Component {
 function mapStateToProps(state) {
   const { auth, config, collections, globalUI } = state;
   const user = auth && auth.get('user');
+  const authPopup = (auth && auth.get('popup')) || false;
   const isFetching = globalUI.get('isFetching');
   const publishMode = config && config.get('publish_mode');
-  return { auth, config, collections, user, isFetching, publishMode };
+  return { auth, config, collections, user, isFetching, publishMode, authPopup };
 }
 
 function mapDispatchToProps(dispatch) {

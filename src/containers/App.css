@@ -2,3 +2,10 @@
   padding: 0 40px;
 }
 
+.nc-auth-page {
+  height: 100vh;
+}
+
+.nc-auth-dialog {
+  width: calc(var(--authenticationCardWidth) + 48px);
+}
