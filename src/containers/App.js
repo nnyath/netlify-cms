@@ -221,8 +221,8 @@ class App extends React.Component {
 
 function mapStateToProps(state) {
   const { auth, config, collections, globalUI } = state;
-  const user = auth && auth.get('user');
-  const authPopup = (auth && auth.get('popup')) || false;
+  const user = auth.get('user', null);
+  const authPopup = auth.get('popup', false);
   const isFetching = globalUI.get('isFetching');
   const publishMode = config && config.get('publish_mode');
   return { auth, config, collections, user, isFetching, publishMode, authPopup };
