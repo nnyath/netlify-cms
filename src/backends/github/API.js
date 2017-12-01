@@ -15,6 +15,7 @@ export default class API {
     this.branch = config.branch || "master";
     this.repo = config.repo || "";
     this.repoURL = `/repos/${ this.repo }`;
+    this.branchNameMaxLength = (config.backend && config.backend.branchNameMaxLength) || 40;
   }
 
   user() {
@@ -86,7 +87,11 @@ export default class API {
   }
 
   generateBranchName(basename) {
-    return `${CMS_BRANCH_PREFIX}${basename}`;
+    const basenameMaxLength = this.branchNameMaxLength - CMS_BRANCH_PREFIX.length;
+    const clampedBaseName = basename.length > basenameMaxLength
+      ? basename.substring(0, basenameMaxLength)
+      : basename;
+    return `${ CMS_BRANCH_PREFIX }${ clampedBaseName }`;
   }
 
   checkMetadataRef() {
