@@ -1,52 +1,71 @@
+import { Text, Inline } from 'slate';
+import SlateSoftBreak from 'slate-soft-break';
 import EditList from 'slate-edit-list';
 import EditTable from 'slate-edit-table';
 
 const SoftBreak = (options = {}) => ({
-  onKeyDown(e, data, state) {
+  onKeyDown(e, data, change) {
     if (data.key != 'enter') return;
     if (options.shift && e.shiftKey == false) return;
 
-    const { onlyIn, ignoreIn, closeAfter, unwrapBlocks, defaultBlock = 'paragraph' } = options;
-    const { type, nodes } = state.startBlock;
+    const { onlyIn, ignoreIn, defaultBlock = 'paragraph' } = options;
+    const { type, text } = change.value.startBlock;
     if (onlyIn && !onlyIn.includes(type)) return;
     if (ignoreIn && ignoreIn.includes(type)) return;
 
-    const shouldClose = nodes.last().characters.takeLast(closeAfter).every(c => c.text === '\n');
-    if (closeAfter && shouldClose) {
-      const trimmed = state.transform().deleteBackward(closeAfter);
-      const unwrapped = unwrapBlocks
-        ? unwrapBlocks.reduce((acc, blockType) => acc.unwrapBlock(blockType), trimmed)
-        : trimmed;
-      return unwrapped.insertBlock(defaultBlock).apply();
+    const shouldClose = text.endsWith('\n');
+    if (shouldClose) {
+      return change
+        .deleteBackward(1)
+        .insertBlock(defaultBlock);
     }
 
-    return state.transform().insertText('\n').apply();
+    const textNode = Text.create('\n');
+    const breakNode = Inline.create({ type: 'break', nodes: [ textNode ] });
+    return change
+      .insertInline(breakNode)
+      .insertText('')
+      .collapseToStartOfNextText();
   }
 });
 
 const SoftBreakOpts = {
   onlyIn: ['quote', 'code'],
-  closeAfter: 1
 };
 
 export const SoftBreakConfigured = SoftBreak(SoftBreakOpts);
 
+export const ParagraphSoftBreakConfigured = SoftBreak({ onlyIn: ['paragraph'], shift: true });
+
+const BreakToDefaultBlock = ({ onlyIn = [], defaultBlock = 'paragraph' }) => ({
+  onKeyDown(e, data, change) {
+    const { value } = change;
+    if (data.key != 'enter' || e.shiftKey == true || value.isExpanded) return;
+    if (onlyIn.includes(value.startBlock.type)) {
+      return change.insertBlock(defaultBlock);
+    }
+  }
+});
+
+const BreakToDefaultBlockOpts = {
+  onlyIn: ['heading-one', 'heading-two', 'heading-three', 'heading-four', 'heading-five', 'heading-six'],
+};
+
+export const BreakToDefaultBlockConfigured = BreakToDefaultBlock(BreakToDefaultBlockOpts);
+
 const BackspaceCloseBlock = (options = {}) => ({
-  onKeyDown(e, data, state) {
-    if (data.key != 'backspace') return;
+  onKeyDown(event, change) {
+    if (event.key !== 'Backspace') return;
 
     const { defaultBlock = 'paragraph', ignoreIn, onlyIn } = options;
-    const { startBlock } = state;
+    const { startBlock } = change.value;
     const { type } = startBlock;
 
     if (onlyIn && !onlyIn.includes(type)) return;
     if (ignoreIn && ignoreIn.includes(type)) return;
 
-    const characters = startBlock.getFirstText().characters;
-    const isEmpty = !characters || characters.isEmpty();
-
-    if (isEmpty) {
-      return state.transform().insertBlock(defaultBlock).focus().apply();
+    if (startBlock.text === '') {
+      return change.setBlock(defaultBlock).focus();
     }
   }
 });
@@ -82,9 +101,10 @@ export const EditTableConfigured = EditTable(EditTableOpts);
 
 const plugins = [
   SoftBreakConfigured,
+  ParagraphSoftBreakConfigured,
   BackspaceCloseBlockConfigured,
+  BreakToDefaultBlockConfigured,
   EditListConfigured,
-  EditTableConfigured,
 ];
 
 export default plugins;

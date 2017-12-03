@@ -1,26 +1,9 @@
-import React, { PropTypes } from 'react';
-import DateTime from 'react-datetime';
+import React from 'react';
+import DateControl from './DateControl';
 
 export default class DateTimeControl extends React.Component {
-  componentDidMount() {
-    if (!this.props.value) {
-      this.props.onChange(new Date());
-    }
-  }
-
-  handleChange = (datetime) => {
-    this.props.onChange(datetime);
-  };
-
   render() {
-    return <DateTime value={this.props.value} onChange={this.handleChange} />;
+    const { field, format, onChange, value } = this.props;
+    return <DateControl onChange={onChange} format={format} value={value} field={field} includeTime />;
   }
 }
-
-DateTimeControl.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.oneOfType([
-    PropTypes.object,
-    PropTypes.string,
-  ]),
-};

@@ -2,11 +2,12 @@ import { attempt, isError } from 'lodash';
 import TestRepoBackend from "./test-repo/implementation";
 import GitHubBackend from "./github/implementation";
 import GitLabBackend from "./gitlab/implementation";
-import NetlifyAuthBackend from "./netlify-auth/implementation";
+import GitGatewayBackend from "./git-gateway/implementation";
 import { resolveFormat } from "../formats/formats";
-import { selectListMethod, selectEntrySlug, selectEntryPath, selectAllowNewEntries, selectFolderEntryExtension } from "../reducers/collections";
+import { selectIntegration } from '../reducers/integrations';
+import { selectListMethod, selectEntrySlug, selectEntryPath, selectAllowNewEntries, selectAllowDeletion, selectFolderEntryExtension } from "../reducers/collections";
 import { createEntry } from "../valueObjects/Entry";
-import slug from 'slug';
+import { sanitizeSlug } from "../lib/urlHelper";
 
 class LocalStorageAuthStore {
   storageKey = "netlify-cms-user";
@@ -37,13 +38,13 @@ const slugFormatter = (template = "{{slug}}", entryData) => {
     const identifier = identifiers.find(ident => ident !== undefined);
 
     if (identifier === undefined) {
-      throw new Error("Collection must have a field name that is a valid entry identifier"); 
+      throw new Error("Collection must have a field name that is a valid entry identifier");
     }
 
     return identifier;
   };
-  
-  return template.replace(/\{\{([^\}]+)\}\}/g, (_, field) => {
+
+  const slug = template.replace(/\{\{([^\}]+)\}\}/g, (_, field) => {
     switch (field) {
       case "year":
         return date.getFullYear();
@@ -52,16 +53,24 @@ const slugFormatter = (template = "{{slug}}", entryData) => {
       case "day":
         return (`0${ date.getDate() }`).slice(-2);
       case "slug":
-        return slug(getIdentifier(entryData).trim(), {lower: true});
+        return getIdentifier(entryData).trim();
       default:
-        return slug(entryData.get(field, "").trim(), {lower: true});
+        return entryData.get(field, "").trim();
     }
-  });
+  })
+  // Convert slug to lower-case
+  .toLocaleLowerCase()
+
+  // Replace periods and spaces with dashes.
+  .replace(/[.\s]/g, '-');
+
+  return sanitizeSlug(slug);
 };
 
 class Backend {
-  constructor(implementation, authStore = null) {
+  constructor(implementation, backendName, authStore = null) {
     this.implementation = implementation;
+    this.backendName = backendName;
     this.authStore = authStore;
     if (this.implementation === null) {
       throw new Error("Cannot instantiate a Backend with no implementation");
@@ -71,8 +80,13 @@ class Backend {
   currentUser() {
     if (this.user) { return this.user; }
     const stored = this.authStore && this.authStore.retrieve();
-    if (stored) {
-      return Promise.resolve(this.implementation.setUser(stored)).then(() => stored);
+    if (stored && stored.backendName === this.backendName) {
+      return Promise.resolve(this.implementation.restoreUser(stored)).then((user) => {
+        const newUser = {...user, backendName: this.backendName};
+        // return confirmed/rehydrated user object instead of stored
+        this.authStore.store(newUser);
+        return newUser;
+      });
     }
     return Promise.resolve(null);
   }
@@ -83,17 +97,18 @@ class Backend {
 
   authenticate(credentials) {
     return this.implementation.authenticate(credentials).then((user) => {
-      if (this.authStore) { this.authStore.store(user); }
-      return user;
+      const newUser = {...user, backendName: this.backendName};
+      if (this.authStore) { this.authStore.store(newUser); }
+      return newUser;
     });
   }
 
   logout() {
-    if (this.authStore) {
-      this.authStore.logout();
-    } else {
-      throw new Error("User isn't authenticated.");
-    }
+    return Promise.resolve(this.implementation.logout()).then(() => {
+      if (this.authStore) {
+        this.authStore.logout();
+      }
+    });
   }
 
   getToken = () => this.implementation.getToken();
@@ -135,6 +150,10 @@ class Backend {
     );
   }
 
+  getMedia() {
+    return this.implementation.getMedia();
+  }
+
   entryWithFormat(collectionOrEntity) {
     return (entry) => {
       const format = resolveFormat(collectionOrEntity, entry);
@@ -147,8 +166,8 @@ class Backend {
     };
   }
 
-  unpublishedEntries(page, perPage) {
-    return this.implementation.unpublishedEntries(page, perPage)
+  unpublishedEntries(collections) {
+    return this.implementation.unpublishedEntries()
     .then(loadedEntries => loadedEntries.filter(entry => entry !== null))
     .then(entries => (
       entries.map((loadedEntry) => {
@@ -167,7 +186,10 @@ class Backend {
     ))
     .then(entries => ({
       pagination: 0,
-      entries: entries.map(this.entryWithFormat("editorialWorkflow")),
+      entries: entries.map(entry => {
+        const collection = collections.get(entry.collection);
+        return this.entryWithFormat(collection)(entry);
+      }),
     }));
   }
 
@@ -188,7 +210,7 @@ class Backend {
     .then(this.entryWithFormat(collection, slug));
   }
 
-  persistEntry(config, collection, entryDraft, MediaFiles, options) {
+  persistEntry(config, collection, entryDraft, MediaFiles, integrations, options = {}) {
     const newEntry = entryDraft.getIn(["entry", "newRecord"]) || false;
 
     const parsedData = {
@@ -226,19 +248,42 @@ class Backend {
 
     const collectionName = collection.get("name");
 
+    /**
+     * Determine whether an asset store integration is in use.
+     */
+    const hasAssetStore = integrations && !!selectIntegration(integrations, null, 'assetStore');
+    const updatedOptions = { ...options, hasAssetStore };
+
     return this.implementation.persistEntry(entryObj, MediaFiles, {
-      newEntry, parsedData, commitMessage, collectionName, mode, ...options,
+      newEntry, parsedData, commitMessage, collectionName, mode, ...updatedOptions,
     });
+  }
+
+  persistMedia(file) {
+    const options = {
+      commitMessage: `Upload ${file.path}`,
+    };
+    return this.implementation.persistMedia(file, options);
   }
 
   deleteEntry(config, collection, slug) {
     const path = selectEntryPath(collection, slug);
+
+    if (!selectAllowDeletion(collection)) {
+      throw (new Error("Not allowed to delete entries in this collection"));
+    }
+
     const commitMessage = `Delete ${ collection.get('label') } “${ slug }”`;
     return this.implementation.deleteFile(path, commitMessage);
   }
 
-  persistUnpublishedEntry(config, collection, entryDraft, MediaFiles) {
-    return this.persistEntry(config, collection, entryDraft, MediaFiles, { unpublished: true });
+  deleteMedia(path) {
+    const commitMessage = `Delete ${path}`;
+    return this.implementation.deleteFile(path, commitMessage);
+  }
+
+  persistUnpublishedEntry(...args) {
+    return this.persistEntry(...args, { unpublished: true });
   }
 
   updateUnpublishedEntryStatus(collection, slug, newStatus) {
@@ -290,13 +335,13 @@ export function resolveBackend(config) {
 
   switch (name) {
     case "test-repo":
-      return new Backend(new TestRepoBackend(config), authStore);
+      return new Backend(new TestRepoBackend(config), name, authStore);
     case "github":
       return new Backend(new GitHubBackend(config), authStore);
     case "gitlab":
       return new Backend(new GitLabBackend(config), authStore);
-    case "netlify-auth":
-      return new Backend(new NetlifyAuthBackend(config), authStore);
+    case "git-gateway":
+      return new Backend(new GitGatewayBackend(config), name, authStore);
     default:
       throw new Error(`Backend not found: ${ name }`);
   }

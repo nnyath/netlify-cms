@@ -1,9 +1,11 @@
-import uuid from 'uuid';
+import uuid from 'uuid/v4';
 import { actions as notifActions } from 'redux-notifications';
+import { serializeValues } from '../lib/serializeEntryValues';
 import { closeEntry } from './editor';
 import { BEGIN, COMMIT, REVERT } from 'redux-optimist';
 import { currentBackend } from '../backends/backend';
 import { getAsset } from '../reducers';
+import { selectFields } from '../reducers/collections';
 import { loadEntry } from './entries';
 import { status, EDITORIAL_WORKFLOW } from '../constants/publishModes';
 import { EditorialWorkflowError } from "../valueObjects/errors";
@@ -119,6 +121,7 @@ function unpublishedEntryPersistedFail(error, transactionID) {
     type: UNPUBLISHED_ENTRY_PERSIST_FAILURE,
     payload: { error },
     optimist: { type: REVERT, id: transactionID },
+    error,
   };
 }
 
@@ -206,13 +209,13 @@ export function loadUnpublishedEntry(collection, slug) {
   };
 }
 
-export function loadUnpublishedEntries() {
+export function loadUnpublishedEntries(collections) {
   return (dispatch, getState) => {
     const state = getState();
     if (state.config.get('publish_mode') !== EDITORIAL_WORKFLOW) return;
     const backend = currentBackend(state.config);
     dispatch(unpublishedEntriesLoading());
-    backend.unpublishedEntries().then(
+    backend.unpublishedEntries(collections).then(
       response => dispatch(unpublishedEntriesLoaded(response.entries, response.pagination)),
       error => dispatch(unpublishedEntriesFailed(error))
     );
@@ -225,10 +228,10 @@ export function persistUnpublishedEntry(collection, existingUnpublishedEntry) {
     const entryDraft = state.entryDraft;
 
     // Early return if draft contains validation errors
-    if (!entryDraft.get('fieldsErrors').isEmpty()) return Promise.resolve();
+    if (!entryDraft.get('fieldsErrors').isEmpty()) return Promise.reject();
 
     const backend = currentBackend(state.config);
-    const transactionID = uuid.v4();
+    const transactionID = uuid();
     const assetProxies = entryDraft.get('mediaFiles').map(path => getAsset(state, path));
     const entry = entryDraft.get('entry');
 
@@ -236,13 +239,14 @@ export function persistUnpublishedEntry(collection, existingUnpublishedEntry) {
      * Serialize the values of any fields with registered serializers, and
      * update the entry and entryDraft with the serialized values.
      */
-    const serializedData = serializeValues(entryDraft.getIn(['entry', 'data']), collection.get('fields'));
+    const fields = selectFields(collection, entry.get('slug'));
+    const serializedData = serializeValues(entryDraft.getIn(['entry', 'data']), fields);
     const serializedEntry = entry.set('data', serializedData);
     const serializedEntryDraft = entryDraft.set('entry', serializedEntry);
 
     dispatch(unpublishedEntryPersisting(collection, serializedEntry, transactionID));
     const persistAction = existingUnpublishedEntry ? backend.persistUnpublishedEntry : backend.persistEntry;
-    return persistAction.call(backend, state.config, collection, serializedEntryDraft, assetProxies.toJS())
+    return persistAction.call(backend, state.config, collection, serializedEntryDraft, assetProxies.toJS(), state.integrations)
     .then(() => {
       dispatch(notifSend({
         message: 'Entry saved',
@@ -257,7 +261,7 @@ export function persistUnpublishedEntry(collection, existingUnpublishedEntry) {
         kind: 'danger',
         dismissAfter: 8000,
       }));
-      return dispatch(unpublishedEntryPersistedFail(error, transactionID));
+      return Promise.reject(dispatch(unpublishedEntryPersistedFail(error, transactionID)));
     });
   };
 }
@@ -266,7 +270,7 @@ export function updateUnpublishedEntryStatus(collection, slug, oldStatus, newSta
   return (dispatch, getState) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const transactionID = uuid.v4();
+    const transactionID = uuid();
     dispatch(unpublishedEntryStatusChangeRequest(collection, slug, oldStatus, newStatus, transactionID));
     backend.updateUnpublishedEntryStatus(collection, slug, newStatus)
     .then(() => {
@@ -282,7 +286,7 @@ export function deleteUnpublishedEntry(collection, slug) {
   return (dispatch, getState) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const transactionID = uuid.v4();
+    const transactionID = uuid();
     dispatch(unpublishedEntryPublishRequest(collection, slug, transactionID)); 
     backend.deleteUnpublishedEntry(collection, slug)
     .then(() => {
@@ -303,7 +307,7 @@ export function publishUnpublishedEntry(collection, slug) {
   return (dispatch, getState) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const transactionID = uuid.v4();
+    const transactionID = uuid();
     dispatch(unpublishedEntryPublishRequest(collection, slug, transactionID));
     backend.publishUnpublishedEntry(collection, slug)
     .then(() => {

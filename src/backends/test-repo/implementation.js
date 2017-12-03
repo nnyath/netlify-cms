@@ -1,3 +1,5 @@
+import { remove, attempt, isError } from 'lodash';
+import uuid from 'uuid/v4';
 import AuthenticationPage from './AuthenticationPage';
 import { fileExtension } from '../../lib/pathHelper'
 
@@ -24,16 +26,23 @@ function nameFromEmail(email) {
 export default class TestRepo {
   constructor(config) {
     this.config = config;
+    this.assets = [];
   }
-
-  setUser() {}
 
   authComponent() {
     return AuthenticationPage;
   }
 
+  restoreUser(user) {
+    return this.authenticate(user);
+  }
+
   authenticate(state) {
     return Promise.resolve({ email: state.email, name: nameFromEmail(state.email) });
+  }
+
+  logout() {
+    return null;
   }
 
   getToken() {
@@ -93,10 +102,32 @@ export default class TestRepo {
     return Promise.resolve();
   }
 
+  getMedia() {
+    return Promise.resolve(this.assets);
+  }
+
+  persistMedia({ fileObj }) {
+    const { name, size } = fileObj;
+    const objectUrl = attempt(window.URL.createObjectURL, fileObj);
+    const url = isError(objectUrl) ? '' : objectUrl;
+    const normalizedAsset = { id: uuid(), name, size, path: url, url };
+
+    this.assets.push(normalizedAsset);
+    return Promise.resolve(normalizedAsset);
+  }
+
   deleteFile(path, commitMessage) {
-    const folder = path.substring(0, path.lastIndexOf('/'));
-    const fileName = path.substring(path.lastIndexOf('/') + 1);
-    delete window.repoFiles[folder][fileName];
+    const assetIndex = this.assets.findIndex(asset => asset.path === path);
+    if (assetIndex > -1) {
+      this.assets.splice(assetIndex, 1);
+    }
+
+    else {
+      const folder = path.substring(0, path.lastIndexOf('/'));
+      const fileName = path.substring(path.lastIndexOf('/') + 1);
+      delete window.repoFiles[folder][fileName];
+    }
+
     return Promise.resolve();
   }
 }

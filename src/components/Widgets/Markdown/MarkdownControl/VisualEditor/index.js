@@ -1,111 +1,102 @@
-import React, { Component, PropTypes } from 'react';
-import { get, isEmpty } from 'lodash';
-import { Editor as Slate, Raw, Block, Text } from 'slate';
-import { slateToRemark, remarkToSlate, htmlToSlate } from '../../serializers';
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
+import { get, isEmpty, debounce } from 'lodash';
+import { Value, Document, Block, Text } from 'slate';
+import { Editor as Slate } from 'slate-react';
+import { slateToMarkdown, markdownToSlate, htmlToSlate } from '../../serializers';
 import registry from '../../../../../lib/registry';
 import Toolbar from '../Toolbar/Toolbar';
 import { Sticky } from '../../../../UI/Sticky/Sticky';
-import { MARK_COMPONENTS, NODE_COMPONENTS } from './components';
-import RULES from './rules';
+import { renderNode, renderMark } from './renderers';
+import { validateNode } from './validators';
 import plugins, { EditListConfigured } from './plugins';
 import onKeyDown from './keys';
-import styles from './index.css';
 
 export default class Editor extends Component {
   constructor(props) {
     super(props);
-    const emptyBlock = Block.create({ kind: 'block', type: 'paragraph'});
-    const emptyRaw = { nodes: [emptyBlock] };
-    const mdast = this.props.value && remarkToSlate(this.props.value);
-    const mdastHasNodes = !isEmpty(get(mdast, 'nodes'))
-    const editorState = Raw.deserialize(mdastHasNodes ? mdast : emptyRaw, { terse: true });
+    const emptyText = Text.create('');
+    const emptyBlock = Block.create({ kind: 'block', type: 'paragraph', nodes: [ emptyText ] });
+    const emptyRawDoc = { nodes: [emptyBlock] };
+    const rawDoc = this.props.value && markdownToSlate(this.props.value);
+    const rawDocHasNodes = !isEmpty(get(rawDoc, 'nodes'))
+    const document = Document.fromJSON(rawDocHasNodes ? rawDoc : emptyRawDoc);
+    const value = Value.create({ document });
     this.state = {
-      editorState,
-      schema: {
-        nodes: NODE_COMPONENTS,
-        marks: MARK_COMPONENTS,
-        rules: RULES,
-      },
+      value,
       shortcodePlugins: registry.getEditorComponents(),
     };
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return !this.state.editorState.equals(nextState.editorState);
+    return !this.state.value.equals(nextState.value);
   }
 
-  handlePaste = (e, data, state) => {
+  handlePaste = (e, data, change) => {
     if (data.type !== 'html' || data.isShift) {
       return;
     }
     const ast = htmlToSlate(data.html);
-    const { document: doc } = Raw.deserialize(ast, { terse: true });
-    return state.transform().insertFragment(doc).apply();
+    const doc = Document.fromJSON(ast);
+    return change.insertFragment(doc);
   }
 
-  handleDocumentChange = (doc, editorState) => {
-    const raw = Raw.serialize(editorState, { terse: true });
-    const plugins = this.state.shortcodePlugins;
-    const mdast = slateToRemark(raw, plugins);
-    this.props.onChange(mdast);
-  };
-
-  hasMark = type => this.state.editorState.marks.some(mark => mark.type === type);
-  hasBlock = type => this.state.editorState.blocks.some(node => node.type === type);
+  hasMark = type => this.state.value.activeMarks.some(mark => mark.type === type);
+  hasBlock = type => this.state.value.blocks.some(node => node.type === type);
 
   handleMarkClick = (event, type) => {
     event.preventDefault();
-    const resolvedState = this.state.editorState.transform().focus().toggleMark(type).apply();
-    this.ref.onChange(resolvedState);
-    this.setState({ editorState: resolvedState });
+    const resolvedChange = this.state.value.change().focus().toggleMark(type);
+    this.ref.onChange(resolvedChange);
+    this.setState({ value: resolvedChange.value });
   };
 
   handleBlockClick = (event, type) => {
     event.preventDefault();
-    let { editorState } = this.state;
-    const { document: doc, selection } = editorState;
-    const transform = editorState.transform();
+    let { value } = this.state;
+    const { document: doc, selection } = value;
+    const { unwrapList, wrapInList } = EditListConfigured.changes;
+    let change = value.change();
 
     // Handle everything except list buttons.
     if (!['bulleted-list', 'numbered-list'].includes(type)) {
       const isActive = this.hasBlock(type);
-      const transformed = transform.setBlock(isActive ? 'paragraph' : type);
+      change = change.setBlock(isActive ? 'paragraph' : type);
     }
 
     // Handle the extra wrapping required for list buttons.
     else {
-      const isSameListType = editorState.blocks.some(block => {
+      const isSameListType = value.blocks.some(block => {
         return !!doc.getClosest(block.key, parent => parent.type === type);
       });
-      const isInList = EditListConfigured.utils.isSelectionInList(editorState);
+      const isInList = EditListConfigured.utils.isSelectionInList(value);
 
       if (isInList && isSameListType) {
-        EditListConfigured.transforms.unwrapList(transform, type);
+        change = change.call(unwrapList, type);
       } else if (isInList) {
         const currentListType = type === 'bulleted-list' ? 'numbered-list' : 'bulleted-list';
-        EditListConfigured.transforms.unwrapList(transform, currentListType);
-        EditListConfigured.transforms.wrapInList(transform, type);
+        change = change.call(unwrapList, currentListType).call(wrapInList, type);
       } else {
-        EditListConfigured.transforms.wrapInList(transform, type);
+        change = change.call(wrapInList, type);
       }
     }
 
-    const resolvedState = transform.focus().apply();
-    this.ref.onChange(resolvedState);
-    this.setState({ editorState: resolvedState });
+    const resolvedChange = change.focus();
+    this.ref.onChange(resolvedChange);
+    this.setState({ value: resolvedChange.value });
   };
 
   hasLinks = () => {
-    return this.state.editorState.inlines.some(inline => inline.type === 'link');
+    return this.state.value.inlines.some(inline => inline.type === 'link');
   };
 
   handleLink = () => {
-    let { editorState } = this.state;
+    let change = this.state.value.change();
 
     // If the current selection contains links, clicking the "link" button
     // should simply unlink them.
     if (this.hasLinks()) {
-      editorState = editorState.transform().unwrapInline('link').apply();
+      change = change.unwrapInline('link');
     }
 
     else {
@@ -114,36 +105,43 @@ export default class Editor extends Component {
       // If nothing is entered in the URL prompt, do nothing.
       if (!url) return;
 
-      let transform = editorState.transform();
-
       // If no text is selected, use the entered URL as text.
-      if (editorState.isCollapsed) {
-        transform = transform
+      if (change.value.isCollapsed) {
+        change = change
           .insertText(url)
           .extend(0 - url.length);
       }
 
-      editorState = transform
+      change = change
         .wrapInline({ type: 'link', data: { url } })
-        .collapseToEnd()
-        .apply();
+        .collapseToEnd();
     }
 
-    this.ref.onChange(editorState);
-    this.setState({ editorState });
+    this.ref.onChange(change);
+    this.setState({ value: change.value });
   };
 
   handlePluginSubmit = (plugin, shortcodeData) => {
-    const { editorState } = this.state;
+    const { value } = this.state;
     const data = {
       shortcode: plugin.id,
       shortcodeData,
     };
-    const nodes = [Text.createFromString('')];
+    const nodes = [Text.create('')];
     const block = { kind: 'block', type: 'shortcode', data, isVoid: true, nodes };
-    const resolvedState = editorState.transform().insertBlock(block).focus().apply();
-    this.ref.onChange(resolvedState);
-    this.setState({ editorState: resolvedState });
+    let change = value.change();
+    const { focusBlock } = change.value;
+
+    if (focusBlock.text === '') {
+      change = change.setNodeByKey(focusBlock.key, block);
+    } else {
+      change = change.insertBlock(block);
+    }
+
+    change = change.focus();
+
+    this.ref.onChange(change);
+    this.setState({ value: change.value });
   };
 
   handleToggle = () => {
@@ -157,14 +155,28 @@ export default class Editor extends Component {
     return { onAction: e => handler(e, type), active: isActive(type) };
   };
 
+  handleDocumentChange = debounce(change => {
+    const raw = change.value.document.toJSON();
+    const plugins = this.state.shortcodePlugins;
+    const markdown = slateToMarkdown(raw, plugins);
+    this.props.onChange(markdown);
+  }, 150);
+
+  handleChange = change => {
+    if (!this.state.value.document.equals(change.value.document)) {
+      this.handleDocumentChange(change);
+    }
+    this.setState({ value: change.value });
+  };
+
   render() {
     const { onAddAsset, onRemoveAsset, getAsset } = this.props;
 
     return (
-      <div className={styles.wrapper}>
+      <div className="nc-visualEditor-wrapper">
         <Sticky
-          className={styles.editorControlBar}
-          classNameActive={styles.editorControlBarSticky}
+          className="nc-visualEditor-editorControlBar"
+          classNameActive="nc-visualEditor-editorControlBarSticky"
           fillContainerWidth
         >
           <Toolbar
@@ -189,12 +201,13 @@ export default class Editor extends Component {
           />
         </Sticky>
         <Slate
-          className={styles.editor}
-          state={this.state.editorState}
-          schema={this.state.schema}
+          className="nc-visualEditor-editor"
+          value={this.state.value}
+          renderNode={renderNode}
+          renderMark={renderMark}
+          validateNode={validateNode}
           plugins={plugins}
-          onChange={editorState => this.setState({ editorState })}
-          onDocumentChange={this.handleDocumentChange}
+          onChange={this.handleChange}
           onKeyDown={onKeyDown}
           onPaste={this.handlePaste}
           ref={ref => this.ref = ref}
@@ -211,5 +224,5 @@ Editor.propTypes = {
   getAsset: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   onMode: PropTypes.func.isRequired,
-  value: PropTypes.object,
+  value: PropTypes.string,
 };

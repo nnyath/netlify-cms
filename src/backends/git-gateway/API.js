@@ -1,4 +1,5 @@
 import GithubAPI from "../github/API";
+import { APIError } from "../../valueObjects/errors";
 
 export default class API extends GithubAPI {
   constructor(config) {
@@ -25,7 +26,8 @@ export default class API extends GithubAPI {
 
 
   urlFor(path, options) {
-    const params = [];
+    const cacheBuster = new Date().getTime();
+    const params = [`ts=${ cacheBuster }`];
     if (options.params) {
       for (const key in options.params) {
         params.push(`${ key }=${ encodeURIComponent(options.params[key]) }`);
@@ -43,15 +45,20 @@ export default class API extends GithubAPI {
 
   request(path, options = {}) {
     const url = this.urlFor(path, options);
+    let responseStatus;
     return this.getRequestHeaders(options.headers || {})
     .then(headers => fetch(url, { ...options, headers }))
     .then((response) => {
+      responseStatus = response.status;
       const contentType = response.headers.get("Content-Type");
       if (contentType && contentType.match(/json/)) {
         return this.parseJsonResponse(response);
       }
 
       return response.text();
+    })
+    .catch(error => {
+      throw new APIError(error.message, responseStatus, 'Git Gateway');
     });
   }
 

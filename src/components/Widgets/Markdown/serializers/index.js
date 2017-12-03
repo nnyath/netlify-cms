@@ -1,4 +1,4 @@
-import { get, isEmpty, reduce, pull } from 'lodash';
+import { get, isEmpty, reduce, pull, trimEnd } from 'lodash';
 import unified from 'unified';
 import u from 'unist-builder';
 import markdownToRemarkPlugin from 'remark-parse';
@@ -12,11 +12,14 @@ import rehypePaperEmoji from './rehypePaperEmoji';
 import remarkAssertParents from './remarkAssertParents';
 import remarkPaddedLinks from './remarkPaddedLinks';
 import remarkWrapHtml from './remarkWrapHtml';
-import remarkToSlatePlugin from './remarkSlate';
+import remarkToSlate from './remarkSlate';
 import remarkSquashReferences from './remarkSquashReferences';
 import remarkImagesToText from './remarkImagesToText';
 import remarkShortcodes from './remarkShortcodes';
-import slateToRemarkParser from './slateRemark';
+import remarkEscapeMarkdownEntities from './remarkEscapeMarkdownEntities';
+import remarkStripTrailingBreaks from './remarkStripTrailingBreaks';
+import remarkAllowHtmlEntities from './remarkAllowHtmlEntities';
+import slateToRemark from './slateRemark';
 import registry from '../../../../lib/registry';
 
 /**
@@ -34,11 +37,9 @@ import registry from '../../../../lib/registry';
  * - MDAST {object}
  *   Also loosely referred to as "Remark". MDAST stands for MarkDown AST
  *   (Abstract Syntax Tree), and is an object representation of a Markdown
- *   document. Underneath, it's a Unist tree with a Markdown-specific schema. An
- *   MDAST is used as the source of truth for any Markdown field within the CMS
- *   once the Markdown string value is loaded.  MDAST syntax is a part of the
- *   Unified ecosystem, and powers the Remark processor, so Remark plugins may
- *   be used.
+ *   document. Underneath, it's a Unist tree with a Markdown-specific schema.
+ *   MDAST syntax is a part of the Unified ecosystem, and powers the Remark
+ *   processor, so Remark plugins may be used.
  *
  * - HAST {object}
  *   Also loosely referred to as "Rehype". HAST, similar to MDAST, is an object
@@ -53,55 +54,6 @@ import registry from '../../../../lib/registry';
  *   Slate's Raw AST is a very simple and unopinionated object representation of
  *   a document in a Slate editor. We define our own Markdown-specific schema
  *   for serialization to/from Slate's Raw AST and MDAST.
- *
- * Overview of the Markdown widget serialization life cycle:
- *
- * - Entry Load
- *   When an entry is loaded, all Markdown widget values are serialized to
- *   MDAST within the entry draft.
- *
- * - Visual Editor Render
- *   When a Markdown widget using the visual editor renders, it converts the
- *   MDAST value from the entry draft to Slate's Raw AST, and renders that.
- *
- * - Visual Editor Update
- *   When the value of a Markdown field is changed in the visual editor, the
- *   resulting Slate Raw AST is converted back to MDAST, and the MDAST value is
- *   set as the new state of the field in the entry draft.
- *
- * - Visual Editor Paste
- *   When a value is pasted to the visual editor, the pasted value is checked
- *   for HTML data. If HTML is found, the value is deserialized to an HAST, then
- *   to MDAST, and finally to Slate's Raw AST. If no HTML is found, the plain
- *   text value of the paste is serialized to Slate's Raw AST via the Slate
- *   Plain serializer. The deserialized fragment is then inserted to the Slate
- *   document.
- *
- * - Raw Editor Render
- *   When a Markdown widget using the raw editor (Markdown switch activated),
- *   it stringifies the MDAST from the entry draft to Markdown, and runs the
- *   stringified Markdown through Slate's Plain serializer, which outputs a
- *   Slate Raw AST of the plain text, which is then rendered in the editor.
- *
- * - Raw Editor Update
- *   When the value of a Markdown field is changed in the raw editor, the
- *   resulting Slate Raw AST is stringified back to a string, and the string
- *   value is then parsed as Markdown into an MDAST. The MDAST value is
- *   set as the new state of the field in the entry draft.
- *
- * - Raw Editor Paste
- *   When a value is pasted to the raw editor, the text value of the paste is
- *   serialized to Slate's Raw AST via the Slate Plain serializer. The
- *   deserialized fragment is then inserted to the Slate document.
- *
- * - Preview Pane Render
- *   When the preview pane renders the value of a Markdown widget, it first
- *   converts the MDAST value to HAST, stringifies the HAST to HTML, and
- *   renders that.
- *
- * - Entry Persist (Save)
- *   On persist, the MDAST value in the entry draft is stringified back to
- *   a Markdown string for storage.
  */
 
 
@@ -109,26 +61,13 @@ import registry from '../../../../lib/registry';
  * Deserialize a Markdown string to an MDAST.
  */
 export const markdownToRemark = markdown => {
-
-  /**
-   * Disabling tokenizers allows us to turn off features within the Remark
-   * parser.
-   */
-  function disableTokenizers() {
-
-    /**
-     * Turn off soft breaks until we can properly support them across both
-     * editors.
-     */
-    pull(this.Parser.prototype.inlineMethods, 'break');
-  }
-
   /**
    * Parse the Markdown string input to an MDAST.
    */
   const parsed = unified()
-    .use(markdownToRemarkPlugin, { fences: true, pedantic: true, commonmark: true })
-    .use(disableTokenizers)
+    .use(markdownToRemarkPlugin, { fences: true, commonmark: true })
+    .use(markdownToRemarkRemoveTokenizers, { inlineTokenizers: ['url'] })
+    .use(remarkAllowHtmlEntities)
     .parse(markdown);
 
   /**
@@ -142,6 +81,16 @@ export const markdownToRemark = markdown => {
 
   return result;
 };
+
+
+/**
+ * Remove named tokenizers from the parser, effectively deactivating them.
+ */
+function markdownToRemarkRemoveTokenizers({ inlineTokenizers }) {
+  inlineTokenizers && inlineTokenizers.forEach(tokenizer => {
+    delete this.Parser.prototype.inlineTokenizers[tokenizer];
+  });
+}
 
 
 /**
@@ -164,19 +113,46 @@ export const remarkToMarkdown = obj => {
    */
   const mdast = obj || u('root', [u('paragraph', [u('text', '')])]);
 
-  const markdown = unified()
-    .use(remarkToMarkdownPlugin, { listItemIndent: '1', fences: true, pedantic: true, commonmark: true })
-    .use(remarkAllowAllText)
-    .stringify(mdast);
+  const remarkToMarkdownPluginOpts = {
+    commonmark: true,
+    fences: true,
+    listItemIndent: '1',
 
-  return markdown;
+    /**
+     * Settings to emulate the defaults from the Prosemirror editor, not
+     * necessarily optimal. Should eventually be configurable.
+     */
+    bullet: '*',
+    strong: '*',
+    rule: '-',
+  };
+
+  /**
+   * Transform the MDAST with plugins.
+   */
+  const processedMdast = unified()
+    .use(remarkEscapeMarkdownEntities)
+    .use(remarkStripTrailingBreaks)
+    .runSync(mdast);
+
+  const markdown = unified()
+    .use(remarkToMarkdownPlugin, remarkToMarkdownPluginOpts)
+    .use(remarkAllowAllText)
+    .stringify(processedMdast);
+
+  /**
+   * Return markdown with trailing whitespace removed.
+   */
+  return trimEnd(markdown);
 };
 
 
 /**
- * Convert an MDAST to an HTML string.
+ * Convert Markdown to HTML.
  */
-export const remarkToHtml = (mdast, getAsset) => {
+export const markdownToHtml = (markdown, getAsset) => {
+  const mdast = markdownToRemark(markdown);
+
   const hast = unified()
     .use(remarkToRehypeShortcodes, { plugins: registry.getEditorComponents(), getAsset })
     .use(remarkToRehype, { allowDangerousHTML: true })
@@ -210,7 +186,7 @@ export const htmlToSlate = html => {
     .use(remarkImagesToText)
     .use(remarkShortcodes, { plugins: registry.getEditorComponents() })
     .use(remarkWrapHtml)
-    .use(remarkToSlatePlugin)
+    .use(remarkToSlate)
     .runSync(mdast);
 
   return slateRaw;
@@ -218,19 +194,22 @@ export const htmlToSlate = html => {
 
 
 /**
- * Convert an MDAST to Slate's Raw AST.
+ * Convert Markdown to Slate's Raw AST.
  */
-export const remarkToSlate = mdast => {
-  const result = unified()
+export const markdownToSlate = markdown => {
+  const mdast = markdownToRemark(markdown);
+
+  const slateRaw = unified()
     .use(remarkWrapHtml)
-    .use(remarkToSlatePlugin)
+    .use(remarkToSlate)
     .runSync(mdast);
-  return result;
+
+  return slateRaw;
 };
 
 
 /**
- * Convert a Slate Raw AST to MDAST.
+ * Convert a Slate Raw AST to Markdown.
  *
  * Requires shortcode plugins to parse shortcode nodes back to text.
  *
@@ -238,7 +217,8 @@ export const remarkToSlate = mdast => {
  * MDAST. The conversion is manual because Unified can only operate on Unist
  * trees.
  */
-export const slateToRemark = (raw) => {
-  const mdast = slateToRemarkParser(raw, { shortcodePlugins: registry.getEditorComponents() });
-  return mdast;
+export const slateToMarkdown = raw => {
+  const mdast = slateToRemark(raw, { shortcodePlugins: registry.getEditorComponents() });
+  const markdown = remarkToMarkdown(mdast);
+  return markdown;
 };

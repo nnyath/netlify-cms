@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { selectSearchedEntries } from '../reducers';
@@ -66,7 +67,7 @@ function mapStateToProps(state, ownProps) {
   const entries = selectSearchedEntries(state);
   const collections = state.collections.toIndexedSeq();
   const publicFolder = state.config.get('public_folder');
-  const searchTerm = ownProps.params && ownProps.params.searchTerm;
+  const { searchTerm } = ownProps.match.params;
 
   return { isFetching, page, collections, entries, publicFolder, searchTerm };
 }

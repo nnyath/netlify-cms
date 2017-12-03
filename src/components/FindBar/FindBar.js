@@ -1,5 +1,5 @@
-import React, { Component, PropTypes } from 'react';
-import styles from './FindBar.css';
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 
 export const SEARCH = 'SEARCH';
 const PLACEHOLDER = 'Search entry titles...';
@@ -37,11 +37,11 @@ class FindBar extends Component {
 
   render() {
     return (
-      <div className={styles.root}>
+      <div className="nc-findBar-root">
         <label htmlFor="searchInput" />
         <input
           id="searchInput"
-          className={styles.inputField}
+          className="nc-findBar-inputField"
           ref={c => this._input = c} // eslint-disable-line no-return-assign
           onChange={this.handleChange}
           onKeyDown={this.handleKeyDown}

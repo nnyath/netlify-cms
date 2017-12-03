@@ -1,52 +1,48 @@
-import React, { PropTypes } from 'react';
-import { Editor as Slate, Plain } from 'slate';
-import { markdownToRemark, remarkToMarkdown } from '../../serializers';
+import PropTypes from 'prop-types';
+import React from 'react';
+import { Editor as Slate } from 'slate-react';
+import Plain from 'slate-plain-serializer';
+import { debounce } from 'lodash';
 import Toolbar from '../Toolbar/Toolbar';
 import { Sticky } from '../../../../UI/Sticky/Sticky';
-import styles from './index.css';
 
 export default class RawEditor extends React.Component {
   constructor(props) {
     super(props);
-    /**
-     * The value received is a Remark AST (MDAST), and must be stringified
-     * to plain text before Slate's Plain serializer can convert it to the
-     * Slate AST.
-     */
-    const value = remarkToMarkdown(this.props.value);
     this.state = {
-      editorState: Plain.deserialize(value || ''),
+      value: Plain.deserialize(this.props.value || ''),
     };
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return !this.state.editorState.equals(nextState.editorState);
+    return !this.state.value.equals(nextState.value);
   }
 
-  handleChange = editorState => {
-    this.setState({ editorState });
-  }
+  handleChange = change => {
+    if (!this.state.value.document.equals(change.value.document)) {
+      this.handleDocumentChange(change);
+    }
+    this.setState({ value: change.value });
+  };
 
   /**
    * When the document value changes, serialize from Slate's AST back to plain
-   * text (which is Markdown), and then deserialize from that to a Remark MDAST,
-   * before passing up as the new value.
+   * text (which is Markdown) and pass that up as the new value.
    */
-  handleDocumentChange = (doc, editorState) => {
-    const value = Plain.serialize(editorState);
-    const mdast = markdownToRemark(value);
-    this.props.onChange(mdast);
-  };
+  handleDocumentChange = debounce(change => {
+    const value = Plain.serialize(change.value);
+    this.props.onChange(value);
+  }, 150);
 
   /**
    * If a paste contains plain text, deserialize it to Slate's AST and insert
    * to the document. Selection logic (where to insert, whether to replace) is
    * handled by Slate.
    */
-  handlePaste = (e, data, state) => {
+  handlePaste = (e, data, change) => {
     if (data.text) {
       const fragment = Plain.deserialize(data.text).document;
-      return state.transform().insertFragment(fragment).apply();
+      return change.insertFragment(fragment);
     }
   };
 
@@ -56,19 +52,18 @@ export default class RawEditor extends React.Component {
 
   render() {
     return (
-      <div className={styles.rawWrapper}>
+      <div className="nc-rawEditor-rawWrapper">
         <Sticky
-          className={styles.editorControlBar}
-          classNameActive={styles.editorControlBarSticky}
+          className="nc-visualEditor-editorControlBar"
+          classNameActive="nc-visualEditor-editorControlBarSticky"
           fillContainerWidth
         >
           <Toolbar onToggleMode={this.handleToggleMode} disabled rawMode />
         </Sticky>
         <Slate
-          className={styles.rawEditor}
-          state={this.state.editorState}
+          className="nc-rawEditor-rawEditor"
+          value={this.state.value}
           onChange={this.handleChange}
-          onDocumentChange={this.handleDocumentChange}
           onPaste={this.handlePaste}
         />
       </div>
@@ -79,5 +74,5 @@ export default class RawEditor extends React.Component {
 RawEditor.propTypes = {
   onChange: PropTypes.func.isRequired,
   onMode: PropTypes.func.isRequired,
-  value: PropTypes.object,
+  value: PropTypes.string,
 };

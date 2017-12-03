@@ -13,32 +13,20 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        /* CSS loader for npm modules that are shipped with CSS.
+        /* CSS loader for npm modules that are shipped with CSS that should be loaded without processing.
            List all of theme in the array
         */
         test: /\.css$/,
-        include: [/redux-notifications/],
+        include: [/redux-notifications/, /normalize.css/],
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: 'css-loader',
         }),
       },
       {
-        /* React-toolbox still relies on SCSS and css-modules */
-        test: /\.scss$/,
-        include: [/react-toolbox/],
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: [
-            { loader: "css-loader", options: { modules: true } },
-            "sass-loader",
-          ],
-        }),
-      },
-      {
-        /* We use CSS-modules and PostCSS for CMS styles */
+        /* React-toolbox relies on PostCSS and css-modules */
         test: /\.css$/,
-        exclude: /node_modules/,
+        include: [/react-toolbox/],
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
@@ -47,7 +35,24 @@ module.exports = {
               options: {
                 modules: true,
                 importLoaders: 1,
-                localIdentName: "cms__[name]__[local]"
+                localIdentName: "[name]__[local]__[hash:base64:8]"
+              },
+            },
+            { loader: 'postcss-loader' },
+          ],
+        }),
+      },
+      {
+        /* We use PostCSS for CMS styles */
+        test: /\.css$/,
+        exclude: [/node_modules/],
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: [
+            {
+              loader: 'css-loader',
+              options: {
+                importLoaders: 1,
               },
             },
             { loader: 'postcss-loader' },
@@ -61,10 +66,8 @@ module.exports = {
     ],
   },
   plugins: [
+    new webpack.IgnorePlugin(/^esprima$/, /js-yaml/), // Ignore Esprima import for js-yaml
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Ignore all optional deps of moment.js
-    new webpack.ProvidePlugin({
-      fetch: 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
-    }),
   ],
   target: 'web', // Make web variables accessible to webpack, e.g. window
 };

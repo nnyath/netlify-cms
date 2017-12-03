@@ -1,15 +1,16 @@
-import React, { PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { List, Map } from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import Frame from 'react-frame-component';
 import registry from '../../lib/registry';
+import ErrorBoundary from '../UI/ErrorBoundary/ErrorBoundary';
 import { resolveWidget } from '../Widgets';
 import { selectTemplateName, selectInferedField } from '../../reducers/collections';
 import { INFERABLE_FIELDS } from '../../constants/fieldInference';
 import PreviewContent from './PreviewContent.js';
 import PreviewHOC from '../Widgets/PreviewHOC';
 import Preview from './Preview';
-import styles from './PreviewPane.css';
 
 export default class PreviewPane extends React.Component {
 
@@ -141,19 +142,23 @@ export default class PreviewPane extends React.Component {
        .map((style, i) => <link key={i} href={style} type="text/css" rel="stylesheet" />);
 
     if (!collection) {
-      return <Frame className={styles.frame} head={styleEls} />;
+      return <Frame className="nc-previewPane-frame" head={styleEls} />;
     }
 
-    return (<Frame
-      className={styles.frame}
-      head={styleEls}
-      initialContent={`
+    const initialContent = `
 <!DOCTYPE html>
 <html>
   <head><base target="_blank"/></head>
   <body><div></div></body>
-</html>`}
-    ><PreviewContent {...{ previewComponent, previewProps }}/></Frame>);
+</html>
+`;
+    return (
+      <ErrorBoundary>
+        <Frame className="nc-previewPane-frame" head={styleEls} initialContent={initialContent}>
+          <PreviewContent {...{ previewComponent, previewProps }}/>
+        </Frame>
+      </ErrorBoundary>
+    );
   }
 }
 

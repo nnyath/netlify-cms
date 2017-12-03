@@ -1,8 +1,9 @@
 import React from 'react';
+import createReactClass from 'create-react-class';
 import { render } from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
-import 'file-loader?name=index.html!../example/index.html';
-import 'react-toolbox/lib/commons.scss';
+import 'normalize.css';
+import ErrorBoundary from './components/UI/ErrorBoundary/ErrorBoundary';
 import Root from './root';
 import registry from './lib/registry';
 import './index.css';
@@ -21,7 +22,9 @@ document.body.appendChild(el);
 
 render((
   <AppContainer>
-    <Root />
+    <ErrorBoundary>
+      <Root />
+    </ErrorBoundary>
   </AppContainer>
 ), el);
 
@@ -29,15 +32,15 @@ if (module.hot) {
   module.hot.accept('./root', () => { render(Root); });
 }
 
-const buildtInPlugins = [{
+const builtInPlugins = [{
   label: 'Image',
   id: 'image',
   fromBlock: match => match && {
     image: match[2],
     alt: match[1],
   },
-  toBlock: data => `![${ data.alt }](${ data.image })`,
-  toPreview: (data, getAsset) => <img src={getAsset(data.image)} alt={data.alt} />,
+  toBlock: data => `![${ data.alt || "" }](${ data.image || "" })`,
+  toPreview: (data, getAsset) => <img src={getAsset(data.image) || ""} alt={data.alt || ""} />,
   pattern: /^!\[([^\]]+)]\(([^)]+)\)$/,
   fields: [{
     label: 'Image',
@@ -48,7 +51,7 @@ const buildtInPlugins = [{
     name: 'alt',
   }],
 }];
-buildtInPlugins.forEach(plugin => registry.registerEditorComponent(plugin));
+builtInPlugins.forEach(plugin => registry.registerEditorComponent(plugin));
 
 const CMS = {};
 for (const method in registry) { // eslint-disable-line
@@ -57,7 +60,7 @@ for (const method in registry) { // eslint-disable-line
 
 if (typeof window !== 'undefined') {
   window.CMS = CMS;
-  window.createClass = window.createClass || React.createClass;
+  window.createClass = window.createClass || createReactClass;
   window.h = window.h || React.createElement;
 }
 

@@ -1,10 +1,12 @@
-import React, { Component, PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import { without } from 'lodash';
 
 export default class ScrollSync extends Component {
 
   static propTypes = {
     children: PropTypes.element.isRequired,
+    enabled: PropTypes.bool.isRequired,
   };
 
   static childContextTypes = {
@@ -50,6 +52,7 @@ export default class ScrollSync extends Component {
   };
 
   handlePaneScroll = (node) => {
+    if (!this.props.enabled) return false;
     // const node = evt.target
     window.requestAnimationFrame(() => {
       this.syncScrollPositions(node);

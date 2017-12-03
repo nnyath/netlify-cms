@@ -5,7 +5,9 @@ import { closeEntry } from './editor';
 import { currentBackend } from '../backends/backend';
 import { getIntegrationProvider } from '../integrations';
 import { getAsset, selectIntegration } from '../reducers';
+import { selectFields } from '../reducers/collections';
 import { createEntry } from '../valueObjects/Entry';
+import ValidationErrorTypes from '../constants/validationErrorTypes';
 
 const { notifSend } = notifActions;
 
@@ -264,9 +266,23 @@ export function persistEntry(collection) {
   return (dispatch, getState) => {
     const state = getState();
     const entryDraft = state.entryDraft;
+    const fieldsErrors = entryDraft.get('fieldsErrors');
 
     // Early return if draft contains validation errors
-    if (!entryDraft.get('fieldsErrors').isEmpty()) return Promise.reject();
+    if (!fieldsErrors.isEmpty()) {
+      const hasPresenceErrors = fieldsErrors
+        .some(errors => errors.some(error => error.type && error.type === ValidationErrorTypes.PRESENCE));
+      
+      if (hasPresenceErrors) {
+        dispatch(notifSend({
+          message: 'Oops, you\'ve missed a required field. Please complete before saving.',
+          kind: 'danger',
+          dismissAfter: 8000,
+        }));
+      }
+
+      return Promise.reject();
+    }
 
     const backend = currentBackend(state.config);
     const assetProxies = entryDraft.get('mediaFiles').map(path => getAsset(state, path));
@@ -276,7 +292,8 @@ export function persistEntry(collection) {
      * Serialize the values of any fields with registered serializers, and
      * update the entry and entryDraft with the serialized values.
      */
-    const serializedData = serializeValues(entryDraft.getIn(['entry', 'data']), collection.get('fields'));
+    const fields = selectFields(collection, entry.get('slug'));
+    const serializedData = serializeValues(entryDraft.getIn(['entry', 'data']), fields);
     const serializedEntry = entry.set('data', serializedData);
     const serializedEntryDraft = entryDraft.set('entry', serializedEntry);
     dispatch(entryPersisting(collection, serializedEntry));
@@ -297,7 +314,7 @@ export function persistEntry(collection) {
           kind: 'danger',
           dismissAfter: 8000,
         }));
-        return dispatch(entryPersistFail(collection, serializedEntry, error));
+        return Promise.reject(dispatch(entryPersistFail(collection, serializedEntry, error)));
       });
   };
 }
@@ -319,7 +336,7 @@ export function deleteEntry(collection, slug) {
         dismissAfter: 8000,
       }));
       console.error(error);
-      return dispatch(entryDeleteFail(collection, slug, error));
+      return Promise.reject(dispatch(entryDeleteFail(collection, slug, error)));
     });
   };
 }

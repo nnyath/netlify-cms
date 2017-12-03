@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Compile markdown to Prosemirror document structure should compile a markdown ordered list 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile a markdown ordered list 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -10,7 +10,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "H1",
+          "leaves": Array [
+            Object {
+              "text": "H1",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -30,7 +34,11 @@ Object {
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "yo",
+                  "leaves": Array [
+                    Object {
+                      "text": "yo",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -47,7 +55,11 @@ Object {
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "bro",
+                  "leaves": Array [
+                    Object {
+                      "text": "bro",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -64,7 +76,11 @@ Object {
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "fro",
+                  "leaves": Array [
+                    Object {
+                      "text": "fro",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -80,7 +96,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile bulleted lists 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile bulleted lists 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -90,7 +106,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "H1",
+          "leaves": Array [
+            Object {
+              "text": "H1",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -110,7 +130,11 @@ Object {
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "yo",
+                  "leaves": Array [
+                    Object {
+                      "text": "yo",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -127,7 +151,11 @@ Object {
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "bro",
+                  "leaves": Array [
+                    Object {
+                      "text": "bro",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -144,7 +172,11 @@ Object {
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "fro",
+                  "leaves": Array [
+                    Object {
+                      "text": "fro",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -160,7 +192,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile code blocks 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile code blocks 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -173,7 +205,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "var a = 1;",
+          "leaves": Array [
+            Object {
+              "text": "var a = 1;",
+            },
+          ],
         },
       ],
       "type": "code",
@@ -183,7 +219,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile hard breaks (double space) 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile horizontal rules 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -193,28 +229,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "blue moon  
-footballs",
-        },
-      ],
-      "type": "paragraph",
-    },
-  ],
-  "type": "root",
-}
-`;
-
-exports[`Compile markdown to Prosemirror document structure should compile horizontal rules 1`] = `
-Object {
-  "kind": "block",
-  "nodes": Array [
-    Object {
-      "kind": "block",
-      "nodes": Array [
-        Object {
-          "data": undefined,
-          "kind": "text",
-          "text": "H1",
+          "leaves": Array [
+            Object {
+              "text": "H1",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -222,7 +241,6 @@ Object {
     Object {
       "isVoid": true,
       "kind": "block",
-      "nodes": undefined,
       "type": "thematic-break",
     },
     Object {
@@ -231,7 +249,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "blue moon",
+          "leaves": Array [
+            Object {
+              "text": "blue moon",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -241,7 +263,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile horizontal rules 2`] = `
+exports[`Compile markdown to Slate Raw AST should compile horizontal rules 2`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -251,7 +273,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "H1",
+          "leaves": Array [
+            Object {
+              "text": "H1",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -259,7 +285,6 @@ Object {
     Object {
       "isVoid": true,
       "kind": "block",
-      "nodes": undefined,
       "type": "thematic-break",
     },
     Object {
@@ -268,7 +293,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "blue moon",
+          "leaves": Array [
+            Object {
+              "text": "blue moon",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -278,7 +307,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile images 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile images 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -288,7 +317,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "![super](duper.jpg)",
+          "leaves": Array [
+            Object {
+              "text": "![super](duper.jpg)",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -298,7 +331,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile inline code 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile inline code 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -308,7 +341,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Word",
+          "leaves": Array [
+            Object {
+              "text": "Word",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -319,12 +356,16 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "This is some sweet ",
+          "leaves": Array [
+            Object {
+              "text": "This is some sweet ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -338,7 +379,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": " yo!",
+          "leaves": Array [
+            Object {
+              "text": " yo!",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -348,7 +393,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile kitchen sink example 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile kitchen sink example 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -358,7 +403,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "An exhibit of Markdown",
+          "leaves": Array [
+            Object {
+              "text": "An exhibit of Markdown",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -369,7 +418,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "This note demonstrates some of what Markdown is capable of doing.",
+          "leaves": Array [
+            Object {
+              "text": "This note demonstrates some of what Markdown is capable of doing.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -380,7 +433,7 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -401,7 +454,11 @@ automatically save itself.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Basic formatting",
+          "leaves": Array [
+            Object {
+              "text": "Basic formatting",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -412,9 +469,13 @@ automatically save itself.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Paragraphs can be written like so. A paragraph is the basic block of Markdown.
+          "leaves": Array [
+            Object {
+              "text": "Paragraphs can be written like so. A paragraph is the basic block of Markdown.
 A paragraph is what text will turn into when there is no reason it should
 become anything else.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -425,12 +486,16 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Paragraphs must be separated by a blank line. Basic formatting of ",
+          "leaves": Array [
+            Object {
+              "text": "Paragraphs must be separated by a blank line. Basic formatting of ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -444,13 +509,17 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": " and
+          "leaves": Array [
+            Object {
+              "text": " and
 ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -464,26 +533,53 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": " is supported. This *can be ",
-        },
-        Object {
-          "data": undefined,
-          "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
-              "marks": Array [
-                Object {
-                  "type": "bold",
-                },
-              ],
-              "text": "nested",
+              "text": " is supported. This ",
             },
           ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "text": " like* so.",
+          "leaves": Array [
+            Object {
+              "marks": Array [
+                Object {
+                  "type": "italic",
+                },
+              ],
+              "text": "can be ",
+            },
+            Object {
+              "marks": Array [
+                Object {
+                  "type": "italic",
+                },
+                Object {
+                  "type": "bold",
+                },
+              ],
+              "text": "nested",
+            },
+            Object {
+              "marks": Array [
+                Object {
+                  "type": "italic",
+                },
+              ],
+              "text": " like",
+            },
+          ],
+        },
+        Object {
+          "data": undefined,
+          "kind": "text",
+          "leaves": Array [
+            Object {
+              "text": " so.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -494,7 +590,11 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Lists",
+          "leaves": Array [
+            Object {
+              "text": "Lists",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -505,7 +605,11 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Ordered list",
+          "leaves": Array [
+            Object {
+              "text": "Ordered list",
+            },
+          ],
         },
       ],
       "type": "heading-three",
@@ -525,7 +629,11 @@ become anything else.",
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "Item 1 2. A second item 3. Number 3 4. Ⅳ",
+                  "leaves": Array [
+                    Object {
+                      "text": "Item 1 2. A second item 3. Number 3 4. Ⅳ",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -542,7 +650,7 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -562,7 +670,11 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Unordered list",
+          "leaves": Array [
+            Object {
+              "text": "Unordered list",
+            },
+          ],
         },
       ],
       "type": "heading-three",
@@ -582,7 +694,11 @@ become anything else.",
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "An item Another item Yet another item And there's more...",
+                  "leaves": Array [
+                    Object {
+                      "text": "An item Another item Yet another item And there's more...",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -599,7 +715,11 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Paragraph modifiers",
+          "leaves": Array [
+            Object {
+              "text": "Paragraph modifiers",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -610,7 +730,11 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Code block",
+          "leaves": Array [
+            Object {
+              "text": "Code block",
+            },
+          ],
         },
       ],
       "type": "heading-three",
@@ -624,9 +748,13 @@ become anything else.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Code blocks are very useful for developers and other people who look at
+          "leaves": Array [
+            Object {
+              "text": "Code blocks are very useful for developers and other people who look at
 code or other things that are written in plain text. As you can see, it
 uses a fixed-width font.",
+            },
+          ],
         },
       ],
       "type": "code",
@@ -637,12 +765,16 @@ uses a fixed-width font.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "You can also make ",
+          "leaves": Array [
+            Object {
+              "text": "You can also make ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -656,7 +788,11 @@ uses a fixed-width font.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": " to add code into other things.",
+          "leaves": Array [
+            Object {
+              "text": " to add code into other things.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -667,7 +803,11 @@ uses a fixed-width font.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Quote",
+          "leaves": Array [
+            Object {
+              "text": "Quote",
+            },
+          ],
         },
       ],
       "type": "heading-three",
@@ -681,8 +821,12 @@ uses a fixed-width font.",
             Object {
               "data": undefined,
               "kind": "text",
-              "text": "Here is a quote. What this is should be self explanatory. Quotes are
+              "leaves": Array [
+                Object {
+                  "text": "Here is a quote. What this is should be self explanatory. Quotes are
 automatically indented when they are used.",
+                },
+              ],
             },
           ],
           "type": "paragraph",
@@ -696,7 +840,11 @@ automatically indented when they are used.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Headings",
+          "leaves": Array [
+            Object {
+              "text": "Headings",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -707,9 +855,13 @@ automatically indented when they are used.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "There are six levels of headings. They correspond with the six levels of HTML
+          "leaves": Array [
+            Object {
+              "text": "There are six levels of headings. They correspond with the six levels of HTML
 headings. You've probably noticed them already in the page. Each level down
 uses one more hash character.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -720,12 +872,16 @@ uses one more hash character.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Headings ",
+          "leaves": Array [
+            Object {
+              "text": "Headings ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -739,12 +895,16 @@ uses one more hash character.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": " also contain ",
+          "leaves": Array [
+            Object {
+              "text": " also contain ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -764,12 +924,16 @@ uses one more hash character.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "They can even contain ",
+          "leaves": Array [
+            Object {
+              "text": "They can even contain ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -789,8 +953,12 @@ uses one more hash character.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Of course, demonstrating what headings look like messes up the structure of the
+          "leaves": Array [
+            Object {
+              "text": "Of course, demonstrating what headings look like messes up the structure of the
 page.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -801,10 +969,14 @@ page.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "I don't recommend using more than three or four levels of headings here,
+          "leaves": Array [
+            Object {
+              "text": "I don't recommend using more than three or four levels of headings here,
 because, when you're smallest heading isn't too small, and you're largest
 heading isn't too big, and you want each size up to look noticeably larger and
 more important, there there are only so many sizes that you can use.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -815,7 +987,11 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "URLs",
+          "leaves": Array [
+            Object {
+              "text": "URLs",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -826,7 +1002,11 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "URLs can be made in a handful of ways:",
+          "leaves": Array [
+            Object {
+              "text": "URLs can be made in a handful of ways:",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -846,7 +1026,11 @@ more important, there there are only so many sizes that you can use.",
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "A named link to MarkItDown. The easiest way to do these is to select what you",
+                  "leaves": Array [
+                    Object {
+                      "text": "A named link to MarkItDown. The easiest way to do these is to select what you",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -863,12 +1047,16 @@ more important, there there are only so many sizes that you can use.",
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": "want to make a link and hit ",
+                  "leaves": Array [
+                    Object {
+                      "text": "want to make a link and hit ",
+                    },
+                  ],
                 },
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "ranges": Array [
+                  "leaves": Array [
                     Object {
                       "marks": Array [
                         Object {
@@ -882,7 +1070,11 @@ more important, there there are only so many sizes that you can use.",
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": ".  Another named link to",
+                  "leaves": Array [
+                    Object {
+                      "text": ".  Another named link to",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -906,7 +1098,11 @@ more important, there there are only so many sizes that you can use.",
                     Object {
                       "data": undefined,
                       "kind": "text",
-                      "text": "MarkItDown",
+                      "leaves": Array [
+                        Object {
+                          "text": "MarkItDown",
+                        },
+                      ],
                     },
                   ],
                   "type": "link",
@@ -914,7 +1110,11 @@ more important, there there are only so many sizes that you can use.",
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": " Sometimes you just want a URL like",
+                  "leaves": Array [
+                    Object {
+                      "text": " Sometimes you just want a URL like",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -938,7 +1138,11 @@ more important, there there are only so many sizes that you can use.",
                     Object {
                       "data": undefined,
                       "kind": "text",
-                      "text": "http://www.markitdown.net/",
+                      "leaves": Array [
+                        Object {
+                          "text": "http://www.markitdown.net/",
+                        },
+                      ],
                     },
                   ],
                   "type": "link",
@@ -946,7 +1150,11 @@ more important, there there are only so many sizes that you can use.",
                 Object {
                   "data": undefined,
                   "kind": "text",
-                  "text": ".",
+                  "leaves": Array [
+                    Object {
+                      "text": ".",
+                    },
+                  ],
                 },
               ],
               "type": "paragraph",
@@ -963,7 +1171,11 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Horizontal rule",
+          "leaves": Array [
+            Object {
+              "text": "Horizontal rule",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -974,7 +1186,11 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "A horizontal rule is a line that goes across the middle of the page.",
+          "leaves": Array [
+            Object {
+              "text": "A horizontal rule is a line that goes across the middle of the page.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -982,7 +1198,6 @@ more important, there there are only so many sizes that you can use.",
     Object {
       "isVoid": true,
       "kind": "block",
-      "nodes": undefined,
       "type": "thematic-break",
     },
     Object {
@@ -991,7 +1206,11 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "It's sometimes handy for breaking things up.",
+          "leaves": Array [
+            Object {
+              "text": "It's sometimes handy for breaking things up.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -1002,7 +1221,11 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Images",
+          "leaves": Array [
+            Object {
+              "text": "Images",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -1013,7 +1236,11 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Markdown can also contain images. I'll need to add something here sometime.",
+          "leaves": Array [
+            Object {
+              "text": "Markdown can also contain images. I'll need to add something here sometime.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -1024,7 +1251,11 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Finally",
+          "leaves": Array [
+            Object {
+              "text": "Finally",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -1035,10 +1266,14 @@ more important, there there are only so many sizes that you can use.",
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "There's actually a lot more to Markdown than this. See the official
+          "leaves": Array [
+            Object {
+              "text": "There's actually a lot more to Markdown than this. See the official
 introduction and syntax for more information. However, be aware that this is
 not using the official implementation, and this might work subtly differently
   in some of the little things.",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -1048,7 +1283,7 @@ not using the official implementation, and this might work subtly differently
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile links 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile links 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -1058,7 +1293,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Word",
+          "leaves": Array [
+            Object {
+              "text": "Word",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -1069,7 +1308,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "How far is it to ",
+          "leaves": Array [
+            Object {
+              "text": "How far is it to ",
+            },
+          ],
         },
         Object {
           "data": Object {
@@ -1081,7 +1324,11 @@ Object {
             Object {
               "data": undefined,
               "kind": "text",
-              "text": "Google",
+              "leaves": Array [
+                Object {
+                  "text": "Google",
+                },
+              ],
             },
           ],
           "type": "link",
@@ -1089,7 +1336,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": " land?",
+          "leaves": Array [
+            Object {
+              "text": " land?",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -1099,7 +1350,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile multiple header levels 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile multiple header levels 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -1109,7 +1360,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "H1",
+          "leaves": Array [
+            Object {
+              "text": "H1",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -1120,7 +1375,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "H2",
+          "leaves": Array [
+            Object {
+              "text": "H2",
+            },
+          ],
         },
       ],
       "type": "heading-two",
@@ -1131,7 +1390,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "H3",
+          "leaves": Array [
+            Object {
+              "text": "H3",
+            },
+          ],
         },
       ],
       "type": "heading-three",
@@ -1141,7 +1404,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile nested inline markup 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile nested inline markup 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -1151,7 +1414,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "Word",
+          "leaves": Array [
+            Object {
+              "text": "Word",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -1162,12 +1429,16 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "This is ",
+          "leaves": Array [
+            Object {
+              "text": "This is ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -1206,12 +1477,16 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "perhaps ",
+          "leaves": Array [
+            Object {
+              "text": "perhaps ",
+            },
+          ],
         },
         Object {
           "data": undefined,
           "kind": "text",
-          "ranges": Array [
+          "leaves": Array [
             Object {
               "marks": Array [
                 Object {
@@ -1225,7 +1500,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": " even",
+          "leaves": Array [
+            Object {
+              "text": " even",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -1235,7 +1514,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile plugins 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile plugins 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -1245,7 +1524,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "![test](test.png)",
+          "leaves": Array [
+            Object {
+              "text": "![test](test.png)",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -1256,7 +1539,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "{{< test >}}",
+          "leaves": Array [
+            Object {
+              "text": "{{< test >}}",
+            },
+          ],
         },
       ],
       "type": "paragraph",
@@ -1266,7 +1553,7 @@ Object {
 }
 `;
 
-exports[`Compile markdown to Prosemirror document structure should compile simple markdown 1`] = `
+exports[`Compile markdown to Slate Raw AST should compile simple markdown 1`] = `
 Object {
   "kind": "block",
   "nodes": Array [
@@ -1276,7 +1563,11 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "H1",
+          "leaves": Array [
+            Object {
+              "text": "H1",
+            },
+          ],
         },
       ],
       "type": "heading-one",
@@ -1287,7 +1578,60 @@ Object {
         Object {
           "data": undefined,
           "kind": "text",
-          "text": "sweet body",
+          "leaves": Array [
+            Object {
+              "text": "sweet body",
+            },
+          ],
+        },
+      ],
+      "type": "paragraph",
+    },
+  ],
+  "type": "root",
+}
+`;
+
+exports[`Compile markdown to Slate Raw AST should compile soft breaks (double space) 1`] = `
+Object {
+  "kind": "block",
+  "nodes": Array [
+    Object {
+      "kind": "block",
+      "nodes": Array [
+        Object {
+          "data": undefined,
+          "kind": "text",
+          "leaves": Array [
+            Object {
+              "text": "blue moon",
+            },
+          ],
+        },
+        Object {
+          "kind": "inline",
+          "nodes": Array [
+            Object {
+              "data": undefined,
+              "kind": "text",
+              "leaves": Array [
+                Object {
+                  "text": "
+",
+                },
+              ],
+            },
+          ],
+          "type": "break",
+        },
+        Object {
+          "data": undefined,
+          "kind": "text",
+          "leaves": Array [
+            Object {
+              "text": "footballs",
+            },
+          ],
         },
       ],
       "type": "paragraph",
