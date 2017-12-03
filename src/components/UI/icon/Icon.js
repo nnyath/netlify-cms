@@ -151,6 +151,7 @@ const availableIcons = [
   'traffic-cone',
   'cc', 'cc-by', 'cc-nc', 'cc-nc-eu', 'cc-nc-jp', 'cc-sa', 'cc-nd', 'cc-pd', 'cc-zero', 'cc-share', 'cc-remix',
   'github', 'github-circled',
+  'gitlab',
   'flickr', 'flickr-circled',
   'vimeo', 'vimeo-circled',
   'twitter', 'twitter-circled',

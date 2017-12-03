@@ -337,9 +337,9 @@ export function resolveBackend(config) {
     case "test-repo":
       return new Backend(new TestRepoBackend(config), name, authStore);
     case "github":
-      return new Backend(new GitHubBackend(config), authStore);
+      return new Backend(new GitHubBackend(config), name, authStore);
     case "gitlab":
-      return new Backend(new GitLabBackend(config), authStore);
+      return new Backend(new GitLabBackend(config), name, authStore);
     case "git-gateway":
       return new Backend(new GitGatewayBackend(config), name, authStore);
     default:

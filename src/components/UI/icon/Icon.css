@@ -303,6 +303,7 @@
 .nc-icon-paragraph:before { content: '\f1dd'; } /* '' */
 .nc-icon-github:before { content: '\f300'; } /* '' */
 .nc-icon-github-circled:before { content: '\f301'; } /* '' */
+.nc-icon-gitlab:before { content: '\f296'; }
 .nc-icon-flickr:before { content: '\f303'; } /* '' */
 .nc-icon-flickr-circled:before { content: '\f304'; } /* '' */
 .nc-icon-vimeo:before { content: '\f306'; } /* '' */
